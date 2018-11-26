@@ -4,6 +4,7 @@ Auth::routes();
 
 Route::get('/', 'ChatController@index')->name('home');
 Route::post('chat', 'ChatController@store')->name('chat.store');
+Route::get('chat/{chat}', 'ChatController@show')->name('chat.show');
 
 /*
 app.post("/pusher/auth", (req, res) => {
