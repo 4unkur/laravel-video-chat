@@ -32,4 +32,11 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Chat::class);
     }
+
+    public function canJoinRoom($hash)
+    {
+        $chat = Chat::where('hash', $hash)->first();
+
+        return $chat->users()->where('id', $this->id)->count();
+    }
 }

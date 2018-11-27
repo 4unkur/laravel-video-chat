@@ -9,7 +9,7 @@
             </div>
         @endif
 
-        <span id="myid"> </span>
+        <span id="myid"></span>
         <video id="selfview" autoplay></video>
         <video id="remoteview" autoplay></video>
         <button id="endCall" style="display: none;" onclick="endCurrentCall()">End Call</button>
@@ -27,7 +27,7 @@
         var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
             cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
             encrypted: true,
-            authEndpoint: 'broadcasting/auth',
+            authEndpoint: '/broadcasting/auth',
             auth: {
                 headers: {
                     'X-CSRF-Token': '{{ csrf_token() }}',
@@ -35,7 +35,7 @@
             }
         });
         var usersOnline, id, users = [], room, caller, localUserMedia;
-        const channel = pusher.subscribe('presence-videocall');
+        const channel = pusher.subscribe('presence-interview.{{ $chat->hash }}');
         channel.bind('pusher:subscription_succeeded', (members) => {
             //set the member count
             usersOnline = members.count;
@@ -86,7 +86,7 @@
                 onIceCandidate(caller, evt);
             };
             //onaddstream handler to receive remote feed and show in remoteview video element
-            caller.onaddstream = function (evt) {
+            caller.ontrack = function (evt) {
                 console.log("onaddstream called");
                 document.getElementById("remoteview").srcObject = evt.stream;
             };
@@ -247,16 +247,11 @@
     <style>
         video {
             /* video border */
+            width: 200px;
             border: 1px solid #ccc;
             padding: 20px;
             margin: 10px;
             border-radius: 20px;
-            /* tranzitionstransitions applied to the vodeovideo element */
-            -moz-transition: all 1s ease-in-out;
-            -webkit-transition: all 1s ease-in-out;
-            -o-transition: all 1s ease-in-out;
-            -ms-transition: all 1s ease-in-out;
-            transition: all 1s ease-in-out;
         }
 
         #list ul {
@@ -278,11 +273,6 @@
         }
 
         #list ul li:hover {
-            -moz-transform: rotate(-5deg);
-            -moz-box-shadow: 10px 10px 20px #000000;
-            -webkit-transform: rotate(-5deg);
-            -webkit-box-shadow: 10px 10px 20px #000000;
-            transform: rotate(-5deg);
             box-shadow: 10px 10px 20px #000000;
         }
     </style>
