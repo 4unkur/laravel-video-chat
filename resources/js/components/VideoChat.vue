@@ -1,6 +1,7 @@
 <template>
     <div>
         <span v-if="id">My caller ID is: {{ id }}</span>
+        <br>
         <video ref="selfview" autoplay></video>
         <video ref="remoteview" autoplay></video>
         <button v-show="showEndCallButton" @click="endCurrentCall">End Call</button>
@@ -29,7 +30,12 @@
                 localUserMedia: null,
                 channel: null,
                 showEndCallButton: false,
-                prepared: false
+                prepared: false,
+                configuration: {
+                    iceServers: [{
+                        urls: 'stun:stun.l.google.com:19302'
+                    }]
+                }
             }
         },
         created() {
@@ -126,14 +132,11 @@
         methods: {
             prepareCaller() {
                 //Initializing a peer connection
-                this.caller = new window.RTCPeerConnection();
+                this.caller = new window.RTCPeerConnection(this.configuration);
                 //Listen for ICE Candidates and send them to remote peers
                 this.caller.onicecandidate = event => {
-                    if (!event.candidate) {
-                        return;
-                    }
-                    console.log("onicecandidate called");
                     if (event.candidate) {
+                        console.log("onicecandidate called");
                         this.channel.whisper("client-candidate", {
                             "candidate": event.candidate,
                             "room": this.room

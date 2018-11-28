@@ -23496,6 +23496,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     props: ['chat'],
@@ -23510,7 +23511,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             localUserMedia: null,
             channel: null,
             showEndCallButton: false,
-            prepared: false
+            prepared: false,
+            configuration: {
+                iceServers: [{
+                    urls: 'stun:stun.l.google.com:19302'
+                }]
+            }
         };
     },
     created: function created() {
@@ -23520,7 +23526,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         this.GetRTCIceCandidate();
         this.prepareCaller();
 
-        this.channel = Echo.join("interview." + this.chat.hash);
+        this.channel = Echo.join('interview.' + this.chat.hash);
 
         this.channel.here(function (users) {
             _this.usersOnline = users.count;
@@ -23552,7 +23558,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             }
 
             console.log("sdp received");
-            var answer = confirm("You have a call from: " + message.from + ". Would you like to answer?");
+            var answer = confirm('You have a call from: ' + message.from + '. Would you like to answer?');
             if (!answer) {
                 return _this.channel.whisper("client-reject", { "room": message.room, "rejected": _this.id });
             }
@@ -23586,7 +23592,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         }).listenForWhisper("client-reject", function (answer) {
             if (answer.room == _this.room) {
                 console.log("Call declined");
-                alert("Call to " + answer.rejected + " was politely declined");
+                alert('Call to ' + answer.rejected + ' was politely declined');
                 _this.endCall();
             }
         }).listenForWhisper("client-endcall", function (answer) {
@@ -23602,14 +23608,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             var _this2 = this;
 
             //Initializing a peer connection
-            this.caller = new window.RTCPeerConnection();
+            this.caller = new window.RTCPeerConnection(this.configuration);
             //Listen for ICE Candidates and send them to remote peers
             this.caller.onicecandidate = function (event) {
-                if (!event.candidate) {
-                    return;
-                }
-                console.log("onicecandidate called");
                 if (event.candidate) {
+                    console.log("onicecandidate called");
                     _this2.channel.whisper("client-candidate", {
                         "candidate": event.candidate,
                         "room": _this2.room
@@ -23718,6 +23721,8 @@ var render = function() {
     _vm.id
       ? _c("span", [_vm._v("My caller ID is: " + _vm._s(_vm.id))])
       : _vm._e(),
+    _vm._v(" "),
+    _c("br"),
     _vm._v(" "),
     _c("video", { ref: "selfview", attrs: { autoplay: "" } }),
     _vm._v(" "),
