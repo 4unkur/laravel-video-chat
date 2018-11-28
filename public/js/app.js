@@ -23509,14 +23509,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             caller: null,
             localUserMedia: null,
             channel: null,
-            showEndCallButton: false
+            showEndCallButton: false,
+            prepared: false
         };
     },
     created: function created() {
         var _this = this;
 
         this.GetRTCPeerConnection();
-        this.GetRTCSessionDescription();
         this.GetRTCIceCandidate();
         this.prepareCaller();
 
@@ -23526,7 +23526,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             _this.usersOnline = users.count;
             _this.id = _this.channel.pusher.channels.channels[_this.channel.name].members.me.id;
             users.forEach(function (user) {
-                if (user.id !== _this.id) {
+                if (user.id != _this.id) {
                     _this.users.push({ id: user.id, name: user.name });
                 }
             });
@@ -23535,16 +23535,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         }).leaving(function (user) {
             var index = _this.users.indexOf(user.id);
             _this.users.splice(index, 1);
-            if (user.id === _this.room) {
-                endCall();
+            if (user.id == _this.room) {
+                _this.endCall();
             }
         }).listenForWhisper("client-candidate", function (message) {
             //Listening for the candidate message from a peer sent from onicecandidate handler
             if (message.room == _this.room) {
-                var candidate = new RTCIceCandidate(message.candidate);
-                _this.caller.addIceCandidate(candidate).catch(function (error) {
-                    return console.log(error);
-                });
+                // I have no idea what this shit does, so I commented it
+                // this.caller.addIceCandidate(new RTCIceCandidate(message.candidate))
             }
         }).listenForWhisper("client-sdp", function (message) {
             //Listening for Session Description Protocol message with session details from remote peer
@@ -23554,22 +23552,25 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             }
 
             console.log("sdp received");
-            var answer = confirm("You have a call from: " + message.from + "\n                Would you like to answer?");
+            var answer = confirm("You have a call from: " + message.from + ". Would you like to answer?");
             if (!answer) {
                 return _this.channel.whisper("client-reject", { "room": message.room, "rejected": _this.id });
             }
 
             _this.room = message.room;
-            _this.caller.setRemoteDescription(new RTCSessionDescription(message.sdp));
             _this.getCamera().then(function (stream) {
                 _this.localUserMedia = stream;
                 _this.toggleEndCallButton();
                 _this.$refs.selfview.srcObject = stream;
-                _this.caller.addStream(stream);
-                _this.caller.createAnswer().then(function (sdp) {
-                    _this.caller.setLocalDescription(new RTCSessionDescription(sdp));
+                // this.caller.addStream(stream);
+                stream.getTracks().forEach(function (track) {
+                    _this.caller.addTrack(track, stream);
+                });
+                _this.caller.setRemoteDescription(message.sdp);
+                _this.caller.createAnswer().then(function (answer) {
+                    _this.caller.setLocalDescription(answer);
                     _this.channel.whisper("client-answer", {
-                        "sdp": sdp,
+                        "sdp": answer,
                         "room": _this.room
                     });
                 });
@@ -23578,9 +23579,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             });
         }).listenForWhisper("client-answer", function (answer) {
             //Listening for answer to offer sent to remote peer
-            if (answer.room == this.room) {
+            if (answer.room == _this.room) {
                 console.log("answer received");
-                this.caller.setRemoteDescription(new RTCSessionDescription(answer.sdp));
+                _this.caller.setRemoteDescription(answer.sdp);
             }
         }).listenForWhisper("client-reject", function (answer) {
             if (answer.room == _this.room) {
@@ -23608,12 +23609,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     return;
                 }
                 console.log("onicecandidate called");
-                _this2.onIceCandidate(_this2.caller, event);
+                if (event.candidate) {
+                    _this2.channel.whisper("client-candidate", {
+                        "candidate": event.candidate,
+                        "room": _this2.room
+                    });
+                }
             };
             //onaddstream handler to receive remote feed and show in remoteview video element
             this.caller.ontrack = function (event) {
                 console.log("onaddstream called");
-                _this2.$refs.remoteview.srcObject = event.stream;
+                _this2.$refs.remoteview.srcObject = event.streams[0];
             };
         },
         getCamera: function getCamera() {
@@ -23628,16 +23634,18 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         callUser: function callUser(user) {
             var _this3 = this;
 
-            // this.caller.setRemoteDescription(new RTCSessionDescription());
             this.getCamera().then(function (stream) {
                 _this3.$refs.selfview.srcObject = stream;
                 _this3.toggleEndCallButton();
-                _this3.caller.addStream(stream);
+                // this.caller.addStream(stream);
+                stream.getTracks().forEach(function (track) {
+                    _this3.caller.addTrack(track, stream);
+                });
                 _this3.localUserMedia = stream;
-                _this3.caller.createOffer().then(function (description) {
-                    _this3.caller.setLocalDescription(new RTCSessionDescription(description));
+                _this3.caller.createOffer().then(function (offer) {
+                    _this3.caller.setLocalDescription(offer);
                     _this3.channel.whisper("client-sdp", {
-                        "sdp": description,
+                        "sdp": offer,
                         "room": user.id,
                         "from": _this3.id
                     });
@@ -23675,7 +23683,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 }
             }
 
-            this.prepareCaller();
+            this.prepareCaller(true);
             this.toggleEndCallButton();
         },
         endCurrentCall: function endCurrentCall() {
@@ -23683,16 +23691,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 "room": this.room
             });
             this.endCall();
-        },
-
-        //Send the ICE Candidate to the remote peer
-        onIceCandidate: function onIceCandidate(peer, event) {
-            if (event.candidate) {
-                this.channel.whisper("client-candidate", {
-                    "candidate": event.candidate,
-                    "room": this.room
-                });
-            }
         },
         toggleEndCallButton: function toggleEndCallButton() {
             this.showEndCallButton = !this.showEndCallButton;
@@ -23704,10 +23702,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         GetRTCPeerConnection: function GetRTCPeerConnection() {
             window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.msRTCPeerConnection;
             return window.RTCPeerConnection;
-        },
-        GetRTCSessionDescription: function GetRTCSessionDescription() {
-            window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
-            return window.RTCSessionDescription;
         }
     }
 });
