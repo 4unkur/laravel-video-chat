@@ -23502,8 +23502,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     props: ['chat'],
     data: function data() {
         return {
-            //usersOnline, id, users = [], room, caller, localUserMedia
-            usersOnline: [],
             id: null,
             users: [],
             room: null,
@@ -23529,7 +23527,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         this.channel = Echo.join('interview.' + this.chat.hash);
 
         this.channel.here(function (users) {
-            _this.usersOnline = users.count;
             _this.id = _this.channel.pusher.channels.channels[_this.channel.name].members.me.id;
             users.forEach(function (user) {
                 if (user.id != _this.id) {
@@ -23548,7 +23545,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             //Listening for the candidate message from a peer sent from onicecandidate handler
             if (message.room == _this.room) {
                 // I have no idea what this shit does, so I commented it
-                // this.caller.addIceCandidate(new RTCIceCandidate(message.candidate))
+                _this.caller.addIceCandidate(new RTCIceCandidate(message.candidate));
             }
         }).listenForWhisper("client-sdp", function (message) {
             //Listening for Session Description Protocol message with session details from remote peer
@@ -23564,27 +23561,28 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             }
 
             _this.room = message.room;
-            _this.getCamera().then(function (stream) {
-                _this.localUserMedia = stream;
-                _this.toggleEndCallButton();
-                _this.$refs.selfview.srcObject = stream;
-                // this.caller.addStream(stream);
-                stream.getTracks().forEach(function (track) {
-                    _this.caller.addTrack(track, stream);
-                });
-                _this.caller.setRemoteDescription(message.sdp);
-                _this.caller.createAnswer().then(function (answer) {
-                    _this.caller.setLocalDescription(answer);
-                    _this.channel.whisper("client-answer", {
-                        "sdp": answer,
-                        "room": _this.room
+            _this.caller.setRemoteDescription(message.sdp).then(function () {
+                _this.getCamera().then(function (stream) {
+                    _this.localUserMedia = stream;
+                    _this.toggleEndCallButton();
+                    _this.$refs.selfview.srcObject = stream;
+                    stream.getTracks().forEach(function (track) {
+                        _this.caller.addTrack(track, stream);
                     });
+                    if (_this.caller.remoteDescription.type === 'offer') {
+                        _this.caller.createAnswer().then(function (answer) {
+                            _this.caller.setLocalDescription(answer);
+                            _this.channel.whisper("client-answer", {
+                                "sdp": answer,
+                                "room": _this.room
+                            });
+                        });
+                    }
+                }).catch(function (error) {
+                    console.log('an error occured', error);
                 });
-            }).catch(function (error) {
-                console.log('an error occured', error);
             });
         }).listenForWhisper("client-answer", function (answer) {
-            //Listening for answer to offer sent to remote peer
             if (answer.room == _this.room) {
                 console.log("answer received");
                 _this.caller.setRemoteDescription(answer.sdp);
@@ -23646,13 +23644,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 });
                 _this3.localUserMedia = stream;
                 _this3.caller.createOffer().then(function (offer) {
-                    _this3.caller.setLocalDescription(offer);
-                    _this3.channel.whisper("client-sdp", {
-                        "sdp": offer,
-                        "room": user.id,
-                        "from": _this3.id
+                    _this3.caller.setLocalDescription(offer).then(function () {
+                        _this3.channel.whisper("client-sdp", {
+                            "sdp": offer,
+                            "room": user.id,
+                            "from": _this3.id
+                        });
+                        _this3.room = user.id;
                     });
-                    _this3.room = user.id;
                 });
             }).catch(function (error) {
                 console.log('an error occurred', error);
@@ -23686,7 +23685,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 }
             }
 
-            this.prepareCaller(true);
+            this.prepareCaller();
             this.toggleEndCallButton();
         },
         endCurrentCall: function endCurrentCall() {

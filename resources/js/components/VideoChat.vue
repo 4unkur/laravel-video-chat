@@ -21,8 +21,6 @@
         props: ['chat'],
         data() {
             return {
-                //usersOnline, id, users = [], room, caller, localUserMedia
-                usersOnline: [],
                 id: null,
                 users: [],
                 room: null,
@@ -47,7 +45,6 @@
 
             this.channel
                 .here((users) => {
-                    this.usersOnline = users.count;
                     this.id = this.channel.pusher.channels.channels[this.channel.name].members.me.id
                     users.forEach((user) => {
                         if (user.id != this.id) {
@@ -70,7 +67,7 @@
                     //Listening for the candidate message from a peer sent from onicecandidate handler
                     if (message.room == this.room) {
                         // I have no idea what this shit does, so I commented it
-                        // this.caller.addIceCandidate(new RTCIceCandidate(message.candidate))
+                        this.caller.addIceCandidate(new RTCIceCandidate(message.candidate))
                     }
                 })
                 .listenForWhisper("client-sdp", message => {
@@ -87,34 +84,34 @@
                     }
 
                     this.room = message.room;
-                    this.getCamera().then(stream => {
-                        this.localUserMedia = stream;
-                        this.toggleEndCallButton();
-                        this.$refs.selfview.srcObject = stream
-                        // this.caller.addStream(stream);
-                        stream.getTracks().forEach((track) => {
-                            this.caller.addTrack(track, stream);
-                        });
-                        this.caller.setRemoteDescription(message.sdp)
-                        this.caller.createAnswer().then(answer => {
-                            this.caller.setLocalDescription(answer);
-                            this.channel.whisper("client-answer", {
-                                "sdp": answer,
-                                "room": this.room
+                    this.caller.setRemoteDescription(message.sdp).then(() => {
+                        this.getCamera().then(stream => {
+                            this.localUserMedia = stream;
+                            this.toggleEndCallButton();
+                            this.$refs.selfview.srcObject = stream
+                            stream.getTracks().forEach((track) => {
+                                this.caller.addTrack(track, stream);
                             });
+                            if (this.caller.remoteDescription.type === 'offer') {
+                                this.caller.createAnswer().then(answer => {
+                                    this.caller.setLocalDescription(answer);
+                                    this.channel.whisper("client-answer", {
+                                        "sdp": answer,
+                                        "room": this.room
+                                    });
+                                })
+                            }
+                        }).catch(error => {
+                            console.log('an error occured', error);
                         })
-                    }).catch(error => {
-                        console.log('an error occured', error);
                     })
                 })
                 .listenForWhisper("client-answer", answer => {
-                    //Listening for answer to offer sent to remote peer
                     if (answer.room == this.room) {
                         console.log("answer received");
                         this.caller.setRemoteDescription(answer.sdp);
                     }
                 })
-
                 .listenForWhisper("client-reject", answer => {
                     if (answer.room == this.room) {
                         console.log("Call declined");
@@ -168,13 +165,14 @@
                         });
                         this.localUserMedia = stream;
                         this.caller.createOffer().then(offer => {
-                            this.caller.setLocalDescription(offer);
-                            this.channel.whisper("client-sdp", {
-                                "sdp": offer,
-                                "room": user.id,
-                                "from": this.id
-                            });
-                            this.room = user.id;
+                            this.caller.setLocalDescription(offer).then(() => {
+                                this.channel.whisper("client-sdp", {
+                                    "sdp": offer,
+                                    "room": user.id,
+                                    "from": this.id
+                                });
+                                this.room = user.id;
+                            })
                         });
                     })
                     .catch(error => {
@@ -187,7 +185,7 @@
                 for (let track of this.localUserMedia.getTracks()) {
                     track.stop()
                 }
-                this.prepareCaller(true);
+                this.prepareCaller();
                 this.toggleEndCallButton();
             },
 
