@@ -84,6 +84,7 @@
                     this.localUserMedia = stream;
                     this.toggleEndCallButton();
                     this.$refs.selfview.srcObject = stream
+                    this.$refs.selfview.muted = true
                     stream.getTracks().forEach(track => {
                         this.caller.addTrack(track, stream);
                     });
@@ -148,6 +149,7 @@
             async callUser(user) {
                 let stream = await this.getCamera()
                 this.$refs.selfview.srcObject = stream
+                this.$refs.selfview.muted = true
                 this.toggleEndCallButton();
                 // this.caller.addStream(stream);
                 stream.getTracks().forEach((track) => {

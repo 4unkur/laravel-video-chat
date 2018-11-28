@@ -13881,7 +13881,7 @@ return jQuery;
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(12);
-module.exports = __webpack_require__(48);
+module.exports = __webpack_require__(51);
 
 
 /***/ }),
@@ -39814,7 +39814,7 @@ var normalizeComponent = __webpack_require__(45)
 /* script */
 var __vue_script__ = __webpack_require__(46)
 /* template */
-var __vue_template__ = __webpack_require__(47)
+var __vue_template__ = __webpack_require__(50)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -40350,7 +40350,7 @@ module.exports = function normalizeComponent (
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(52);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(47);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__);
 
 
@@ -40465,22 +40465,23 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
                                 _this.localUserMedia = stream;
                                 _this.toggleEndCallButton();
                                 _this.$refs.selfview.srcObject = stream;
+                                _this.$refs.selfview.muted = true;
                                 stream.getTracks().forEach(function (track) {
                                     _this.caller.addTrack(track, stream);
                                 });
 
                                 if (!(_this.caller.remoteDescription.type !== 'offer')) {
-                                    _context.next = 18;
+                                    _context.next = 19;
                                     break;
                                 }
 
                                 return _context.abrupt('return');
 
-                            case 18:
-                                _context.next = 20;
+                            case 19:
+                                _context.next = 21;
                                 return _this.caller.createAnswer();
 
-                            case 20:
+                            case 21:
                                 answer = _context.sent;
 
                                 _this.caller.setLocalDescription(answer);
@@ -40489,7 +40490,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
                                     "room": _this.room
                                 });
 
-                            case 23:
+                            case 24:
                             case 'end':
                                 return _context.stop();
                         }
@@ -40566,21 +40567,22 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
                                 stream = _context2.sent;
 
                                 this.$refs.selfview.srcObject = stream;
+                                this.$refs.selfview.muted = true;
                                 this.toggleEndCallButton();
                                 // this.caller.addStream(stream);
                                 stream.getTracks().forEach(function (track) {
                                     _this3.caller.addTrack(track, stream);
                                 });
                                 this.localUserMedia = stream;
-                                _context2.next = 9;
+                                _context2.next = 10;
                                 return this.caller.createOffer();
 
-                            case 9:
+                            case 10:
                                 offer = _context2.sent;
-                                _context2.next = 12;
+                                _context2.next = 13;
                                 return this.caller.setLocalDescription(offer);
 
-                            case 12:
+                            case 13:
                                 this.channel.whisper("client-sdp", {
                                     "sdp": offer,
                                     "room": user.id,
@@ -40588,7 +40590,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
                                 });
                                 this.room = user.id;
 
-                            case 14:
+                            case 15:
                             case 'end':
                                 return _context2.stop();
                         }
@@ -40657,93 +40659,11 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 /* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c("div", [
-    _vm.id
-      ? _c("span", [_vm._v("My caller ID is: " + _vm._s(_vm.id))])
-      : _vm._e(),
-    _vm._v(" "),
-    _c("br"),
-    _vm._v(" "),
-    _c("video", { ref: "selfview", attrs: { autoplay: "" } }),
-    _vm._v(" "),
-    _c("video", { ref: "remoteview", attrs: { autoplay: "" } }),
-    _vm._v(" "),
-    _c(
-      "button",
-      {
-        directives: [
-          {
-            name: "show",
-            rawName: "v-show",
-            value: _vm.showEndCallButton,
-            expression: "showEndCallButton"
-          }
-        ],
-        on: { click: _vm.endCurrentCall }
-      },
-      [_vm._v("End Call")]
-    ),
-    _vm._v(" "),
-    _c("div", [
-      _c(
-        "ul",
-        { staticClass: "list-group" },
-        _vm._l(_vm.users, function(user) {
-          return _c("li", { key: user.id, staticClass: "list-group-item" }, [
-            _vm._v(
-              "\n                " + _vm._s(user.name) + "\n                "
-            ),
-            _c(
-              "button",
-              {
-                staticClass: "btn btn-primary float-right",
-                attrs: { type: "button" },
-                on: {
-                  click: function($event) {
-                    _vm.callUser(user)
-                  }
-                }
-              },
-              [_vm._v("Call")]
-            )
-          ])
-        })
-      )
-    ])
-  ])
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-737f9f18", module.exports)
-  }
-}
+module.exports = __webpack_require__(48);
+
 
 /***/ }),
 /* 48 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 49 */,
-/* 50 */,
-/* 51 */,
-/* 52 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(53);
-
-
-/***/ }),
-/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -40768,7 +40688,7 @@ var oldRuntime = hadRuntime && g.regeneratorRuntime;
 // Force reevalutation of runtime.js.
 g.regeneratorRuntime = undefined;
 
-module.exports = __webpack_require__(54);
+module.exports = __webpack_require__(49);
 
 if (hadRuntime) {
   // Restore the original runtime.
@@ -40784,7 +40704,7 @@ if (hadRuntime) {
 
 
 /***/ }),
-/* 54 */
+/* 49 */
 /***/ (function(module, exports) {
 
 /**
@@ -41515,6 +41435,85 @@ if (hadRuntime) {
   (function() { return this })() || Function("return this")()
 );
 
+
+/***/ }),
+/* 50 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("div", [
+    _vm.id
+      ? _c("span", [_vm._v("My caller ID is: " + _vm._s(_vm.id))])
+      : _vm._e(),
+    _vm._v(" "),
+    _c("br"),
+    _vm._v(" "),
+    _c("video", { ref: "selfview", attrs: { autoplay: "" } }),
+    _vm._v(" "),
+    _c("video", { ref: "remoteview", attrs: { autoplay: "" } }),
+    _vm._v(" "),
+    _c(
+      "button",
+      {
+        directives: [
+          {
+            name: "show",
+            rawName: "v-show",
+            value: _vm.showEndCallButton,
+            expression: "showEndCallButton"
+          }
+        ],
+        on: { click: _vm.endCurrentCall }
+      },
+      [_vm._v("End Call")]
+    ),
+    _vm._v(" "),
+    _c("div", [
+      _c(
+        "ul",
+        { staticClass: "list-group" },
+        _vm._l(_vm.users, function(user) {
+          return _c("li", { key: user.id, staticClass: "list-group-item" }, [
+            _vm._v(
+              "\n                " + _vm._s(user.name) + "\n                "
+            ),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-primary float-right",
+                attrs: { type: "button" },
+                on: {
+                  click: function($event) {
+                    _vm.callUser(user)
+                  }
+                }
+              },
+              [_vm._v("Call")]
+            )
+          ])
+        })
+      )
+    ])
+  ])
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-737f9f18", module.exports)
+  }
+}
+
+/***/ }),
+/* 51 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
 
 /***/ })
 /******/ ]);
